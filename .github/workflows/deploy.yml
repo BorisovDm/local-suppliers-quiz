@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           mkdir -p dist/categories
-          cp index.html dist/
+          cp suppliers/index.html dist/
           cp categories/index.html dist/categories/
       - uses: peaceiris/actions-gh-pages@v4
         with:

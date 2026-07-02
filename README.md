@@ -17,13 +17,18 @@ category path level by level, picking one of 4 options at each level. 3 lives pe
 
 ## Structure
 
-- `index.html`, `categories/index.html` — the games, fully self-contained (data embedded)
-- `template.html`, `categories/template.html` — layout and game logic; edit these, not `index.html`
-- `build.py`, `categories/build.py` — rebuild `index.html` from the template and the source data
+Each game lives in its own folder — `suppliers/` and `categories/`:
+
+- `index.html` — the game, fully self-contained (data embedded)
+- `template.html` — layout and game logic; edit this, not `index.html`
+- `build.py` — rebuilds `index.html` from the template and the source data
+
+On deploy, `suppliers/index.html` is published at the site root and
+`categories/index.html` at `/categories/`, so the game URLs stay stable.
 
 ## Updating the data
 
-- Supplier price game: put the fresh CSV at `~/Downloads/local_suppliers_quiz_data.csv`, run `python3 build.py`
+- Supplier price game: put the fresh CSV at `~/Downloads/local_suppliers_quiz_data.csv`, run `python3 suppliers/build.py`
 - Category tree game: put the fresh JSON Lines at `~/Downloads/category_quiz_data.json`, run `python3 categories/build.py`
 
 Then commit and push — GitHub Pages redeploys automatically.
