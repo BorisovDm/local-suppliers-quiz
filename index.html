@@ -101,6 +101,15 @@ const I18N = {
 
 function applyLang(l) {
   localStorage.setItem("jp-quiz-lang", l);
+  try {
+    const url = new URL(location);
+    url.searchParams.set("lang", l);
+    history.replaceState(null, "", url);
+  } catch (e) { /* среда без history API — не критично */ }
+  document.querySelectorAll(".game").forEach(a => {
+    const base = a.getAttribute("href").split("?")[0];
+    a.setAttribute("href", base + "?lang=" + l);
+  });
   document.documentElement.lang = l === "pt" ? "pt-BR" : "en";
   const s = I18N[l];
   document.getElementById("t-subtitle").textContent = s.subtitle;
@@ -116,7 +125,8 @@ function applyLang(l) {
 
 document.querySelectorAll(".lang-toggle button").forEach(b =>
   b.onclick = () => applyLang(b.dataset.lang));
-applyLang(localStorage.getItem("jp-quiz-lang") || "en");
+const urlLang = new URLSearchParams(location.search).get("lang");
+applyLang(["en", "pt"].includes(urlLang) ? urlLang : (localStorage.getItem("jp-quiz-lang") || "en"));
 </script>
 
 </body>
