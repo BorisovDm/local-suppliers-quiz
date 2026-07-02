@@ -4,7 +4,7 @@ A quiz game: you see a product on Mercado Livre with its price and the same prod
 from a local Brazilian supplier — guess the supplier's price. Landing within ±25%
 of the real price counts as a hit.
 
-**Play:** https://borisovdm.github.io/supplier-quiz/
+**Play:** https://borisovdm.github.io/local-suppliers-quiz/
 
 ## Structure
 
