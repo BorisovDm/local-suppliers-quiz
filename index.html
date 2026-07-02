@@ -40,29 +40,84 @@
   .game h2 { font-size: 20px; margin-bottom: 6px; }
   .game p { color: var(--muted); font-size: 14px; line-height: 1.5; }
   .game .go { color: var(--accent); font-weight: 700; font-size: 14px; margin-top: 12px; display: inline-block; }
+  .lang-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 10;
+    display: flex; gap: 4px; background: var(--card); border-radius: 10px; padding: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  }
+  .lang-toggle button {
+    background: transparent; color: var(--muted); border: none; border-radius: 7px;
+    padding: 5px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .lang-toggle button.active { background: var(--accent); color: #1a1a00; }
 </style>
 </head>
 <body>
 
+<div class="lang-toggle">
+  <button data-lang="en">EN</button>
+  <button data-lang="pt">PT</button>
+</div>
+
 <h1>🇧🇷 JoomPulse Quiz Games</h1>
-<div class="subtitle">Test how well you know the Brazilian marketplace</div>
+<div class="subtitle" id="t-subtitle">Test how well you know the Brazilian marketplace</div>
 
 <div class="games">
   <a class="game" href="suppliers/">
     <div class="emoji">💰</div>
-    <h2>Guess the Supplier Price</h2>
-    <p>A product on Mercado Livre vs the same product from a local supplier.
+    <h2 id="t-sup-title">Guess the Supplier Price</h2>
+    <p id="t-sup-desc">A product on Mercado Livre vs the same product from a local supplier.
     Guess the supplier's price — ±25% counts as a hit.</p>
-    <span class="go">Play →</span>
+    <span class="go" id="t-sup-go">Play →</span>
   </a>
   <a class="game" href="categories/">
     <div class="emoji">🗂️</div>
-    <h2>Guess the Category Tree</h2>
-    <p>Guess a product's full category path level by level, picking one of 4
+    <h2 id="t-cat-title">Guess the Category Tree</h2>
+    <p id="t-cat-desc">Guess a product's full category path level by level, picking one of 4
     options each time. 3 lives per product.</p>
-    <span class="go">Play →</span>
+    <span class="go" id="t-cat-go">Play →</span>
   </a>
 </div>
+
+<script>
+const I18N = {
+  en: {
+    subtitle: "Test how well you know the Brazilian marketplace",
+    supTitle: "Guess the Supplier Price",
+    supDesc: "A product on Mercado Livre vs the same product from a local supplier. Guess the supplier's price — ±25% counts as a hit.",
+    catTitle: "Guess the Category Tree",
+    catDesc: "Guess a product's full category path level by level, picking one of 4 options each time. 3 lives per product.",
+    play: "Play →",
+  },
+  pt: {
+    subtitle: "Teste o quanto você conhece o marketplace brasileiro",
+    supTitle: "Adivinhe o Preço do Fornecedor",
+    supDesc: "Um produto no Mercado Livre vs o mesmo produto de um fornecedor local. Adivinhe o preço do fornecedor — ±25% conta como acerto.",
+    catTitle: "Adivinhe a Árvore de Categorias",
+    catDesc: "Adivinhe o caminho completo de categorias de um produto, nível por nível, escolhendo uma de 4 opções. 3 vidas por produto.",
+    play: "Jogar →",
+  },
+};
+
+function applyLang(l) {
+  localStorage.setItem("jp-quiz-lang", l);
+  document.documentElement.lang = l === "pt" ? "pt-BR" : "en";
+  const s = I18N[l];
+  document.getElementById("t-subtitle").textContent = s.subtitle;
+  document.getElementById("t-sup-title").textContent = s.supTitle;
+  document.getElementById("t-sup-desc").textContent = s.supDesc;
+  document.getElementById("t-sup-go").textContent = s.play;
+  document.getElementById("t-cat-title").textContent = s.catTitle;
+  document.getElementById("t-cat-desc").textContent = s.catDesc;
+  document.getElementById("t-cat-go").textContent = s.play;
+  document.querySelectorAll(".lang-toggle button").forEach(b =>
+    b.classList.toggle("active", b.dataset.lang === l));
+}
+
+document.querySelectorAll(".lang-toggle button").forEach(b =>
+  b.onclick = () => applyLang(b.dataset.lang));
+applyLang(localStorage.getItem("jp-quiz-lang") || "en");
+</script>
 
 </body>
 </html>

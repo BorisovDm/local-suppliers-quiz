@@ -56,6 +56,17 @@
   .btn:hover { transform: scale(1.04); }
   .btn.secondary { background: var(--card2); color: var(--text); }
 
+  .lang-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 10;
+    display: flex; gap: 4px; background: var(--card); border-radius: 10px; padding: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  }
+  .lang-toggle button {
+    background: transparent; color: var(--muted); border: none; border-radius: 7px;
+    padding: 5px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .lang-toggle button.active { background: var(--accent); color: #1a1a00; }
+
   .progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-size: 14px; color: var(--muted); }
   .progress .score { color: var(--accent); font-weight: 700; }
   .bar { height: 6px; background: var(--card2); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
@@ -136,23 +147,28 @@
 </head>
 <body>
 
-<h1>🇧🇷 Guess the Category Tree</h1>
-<div class="subtitle">You see a product from Mercado Livre. Guess its full category path, level by level.</div>
+<div class="lang-toggle">
+  <button data-lang="en">EN</button>
+  <button data-lang="pt">PT</button>
+</div>
+
+<h1 id="t-title">🇧🇷 Guess the Category Tree</h1>
+<div class="subtitle" id="t-subtitle">You see a product from Mercado Livre. Guess its full category path, level by level.</div>
 
 <!-- START -->
 <div id="screen-start" class="screen">
   <div class="panel">
-    <p>At each level you pick one of 4 categories — only one is correct.<br>
+    <p id="t-intro">At each level you pick one of 4 categories — only one is correct.<br>
     Guess the whole path from the top category down to the leaf.<br>
     You have <b style="color:var(--text)">3 lives ❤️</b> per product — each wrong answer costs one.</p>
-    <div class="rounds-label">How many rounds?</div>
+    <div class="rounds-label" id="t-rounds-label">How many rounds?</div>
     <div class="rounds" id="rounds">
       <button data-n="5">5</button>
       <button data-n="7" class="active">7</button>
       <button data-n="10">10</button>
     </div>
     <button class="btn" id="btn-start">Start game</button>
-    <p style="margin: 20px 0 0; font-size: 13px;">More games: <a href="../suppliers/" style="color: var(--accent);">Guess the Supplier Price →</a></p>
+    <p style="margin: 20px 0 0; font-size: 13px;" id="t-more">More games: <a href="../suppliers/" style="color: var(--accent);">Guess the Supplier Price →</a></p>
   </div>
 </div>
 
@@ -189,12 +205,12 @@
 <div id="screen-result" class="screen hidden">
   <div class="panel">
     <div class="result-emoji" id="res-emoji"></div>
-    <div class="result-score">Products completed: <b id="res-score"></b></div>
+    <div class="result-score"><span id="t-res-label">Products completed: </span><b id="res-score"></b></div>
     <div class="result-title" id="res-title"></div>
     <div class="result-desc" id="res-desc"></div>
     <div class="result-table-wrap">
       <table class="result-table">
-        <thead><tr><th>#</th><th></th><th>Product</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th></th><th id="t-th-prod">Product</th><th></th></tr></thead>
         <tbody id="res-rows"></tbody>
       </table>
     </div>
@@ -208,20 +224,80 @@ const DATA = [{"id":"MLB3572977507","t":"Smart TV AIWA 32” Android HD Borda Ul
 const PRODUCT_LINK = "https://joompulse.com/en/dashboard/beginner-products/";
 const MAX_MISTAKES = 3;
 
-const RATINGS = [
-  { min: 0.00, emoji: "🏖️", title: "Gringo",
-    desc: "You wandered into the catalog and got lost immediately. Categories are still a jungle to you." },
-  { min: 0.21, emoji: "🧭", title: "Window Shopper",
-    desc: "You know the big departments, but the deeper levels swallow you whole." },
-  { min: 0.41, emoji: "📦", title: "Catalog Intern",
-    desc: "You find your way around, though the leaf categories still play tricks on you." },
-  { min: 0.61, emoji: "🗂️", title: "Category Curator",
-    desc: "Solid navigation! You could almost file products for a living." },
-  { min: 0.81, emoji: "🧠", title: "Taxonomy Pro",
-    desc: "You walk the category tree like it's your own backyard. Impressive!" },
-  { min: 0.999, emoji: "👑", title: "Master of the Catalog",
-    desc: "A perfect run! Mercado Livre should hire you to organize their tree." },
+const RATING_TIERS = [
+  { min: 0.00, emoji: "🏖️" },
+  { min: 0.21, emoji: "🧭" },
+  { min: 0.41, emoji: "📦" },
+  { min: 0.61, emoji: "🗂️" },
+  { min: 0.81, emoji: "🧠" },
+  { min: 0.999, emoji: "👑" },
 ];
+
+const I18N = {
+  en: {
+    title: "🇧🇷 Guess the Category Tree",
+    subtitle: "You see a product from Mercado Livre. Guess its full category path, level by level.",
+    intro: 'At each level you pick one of 4 categories — only one is correct.<br>Guess the whole path from the top category down to the leaf.<br>You have <b style="color:var(--text)">3 lives ❤️</b> per product — each wrong answer costs one.',
+    roundsLabel: "How many rounds?",
+    start: "Start game",
+    more: 'More games: <a href="../suppliers/" style="color: var(--accent);">Guess the Supplier Price →</a>',
+    round: (n, tot) => `Round ${n} / ${tot}`,
+    score: s => `Score: ${s}`,
+    level: (n, tot) => `Level ${n} of ${tot}`,
+    flawless: "🎯 Flawless!", completed: "✅ Completed!", outOfLives: "❌ Out of lives",
+    fullPathLabel: "Full path:",
+    livesLeft: "Lives left:",
+    correctWas: "The correct path was:",
+    viewProduct: "View the product in Joompulse →",
+    next: "Next →", results: "Results →",
+    resLabel: "Products completed: ",
+    resScore: (s, tot) => `${s} of ${tot}`,
+    thProduct: "Product",
+    again: "Play again",
+    noPhoto: "no photo",
+    ratings: [
+      { title: "Gringo", desc: "You wandered into the catalog and got lost immediately. Categories are still a jungle to you." },
+      { title: "Window Shopper", desc: "You know the big departments, but the deeper levels swallow you whole." },
+      { title: "Catalog Intern", desc: "You find your way around, though the leaf categories still play tricks on you." },
+      { title: "Category Curator", desc: "Solid navigation! You could almost file products for a living." },
+      { title: "Taxonomy Pro", desc: "You walk the category tree like it's your own backyard. Impressive!" },
+      { title: "Master of the Catalog", desc: "A perfect run! Mercado Livre should hire you to organize their tree." },
+    ],
+  },
+  pt: {
+    title: "🇧🇷 Adivinhe a Árvore de Categorias",
+    subtitle: "Você vê um produto do Mercado Livre. Adivinhe o caminho completo de categorias, nível por nível.",
+    intro: 'Em cada nível você escolhe uma de 4 categorias — só uma é correta.<br>Adivinhe o caminho inteiro, da categoria do topo até a folha.<br>Você tem <b style="color:var(--text)">3 vidas ❤️</b> por produto — cada erro custa uma.',
+    roundsLabel: "Quantas rodadas?",
+    start: "Começar o jogo",
+    more: 'Mais jogos: <a href="../suppliers/" style="color: var(--accent);">Adivinhe o Preço do Fornecedor →</a>',
+    round: (n, tot) => `Rodada ${n} / ${tot}`,
+    score: s => `Pontos: ${s}`,
+    level: (n, tot) => `Nível ${n} de ${tot}`,
+    flawless: "🎯 Impecável!", completed: "✅ Concluído!", outOfLives: "❌ Sem vidas",
+    fullPathLabel: "Caminho completo:",
+    livesLeft: "Vidas restantes:",
+    correctWas: "O caminho correto era:",
+    viewProduct: "Ver o produto no Joompulse →",
+    next: "Próxima →", results: "Resultados →",
+    resLabel: "Produtos concluídos: ",
+    resScore: (s, tot) => `${s} de ${tot}`,
+    thProduct: "Produto",
+    again: "Jogar de novo",
+    noPhoto: "sem foto",
+    ratings: [
+      { title: "Gringo", desc: "Você entrou no catálogo e se perdeu na hora. As categorias ainda são uma selva pra você." },
+      { title: "Só Olhando a Vitrine", desc: "Você conhece os grandes departamentos, mas os níveis mais fundos te engolem." },
+      { title: "Estagiário do Catálogo", desc: "Você se vira bem, mas as categorias-folha ainda te pregam peças." },
+      { title: "Curador de Categorias", desc: "Navegação sólida! Você quase poderia classificar produtos profissionalmente." },
+      { title: "Craque da Taxonomia", desc: "Você anda pela árvore de categorias como se fosse o seu quintal. Impressionante!" },
+      { title: "Mestre do Catálogo", desc: "Uma rodada perfeita! O Mercado Livre deveria te contratar para organizar a árvore." },
+    ],
+  },
+};
+
+let lang = localStorage.getItem("jp-quiz-lang") || "en";
+const t = k => I18N[lang][k];
 
 let totalRounds = 7;
 let round = 0, score = 0;
@@ -267,8 +343,8 @@ function nextRound() {
   round++;
   levelIdx = 0; mistakes = 0;
 
-  $("round-label").textContent = `Round ${round} / ${totalRounds}`;
-  $("score-label").textContent = `Score: ${score}`;
+  $("round-label").textContent = t("round")(round, totalRounds);
+  $("score-label").textContent = t("score")(score);
   $("bar-fill").style.width = ((round - 1) / totalRounds * 100) + "%";
 
   $("prod-img").src = current.img;
@@ -291,7 +367,7 @@ function renderBreadcrumb() {
 function renderLevel() {
   renderLives();
   renderBreadcrumb();
-  $("level-label").textContent = `Level ${levelIdx + 1} of ${current.path.length}`;
+  $("level-label").textContent = t("level")(levelIdx + 1, current.path.length);
 
   const lvl = current.path[levelIdx];
   const opts = sample([lvl.n, ...lvl.w], 4);
@@ -331,7 +407,7 @@ function finishRound(ok) {
   if (ok) score++;
   history.push({ round, ok, title: current.t, id: current.id });
 
-  $("score-label").textContent = `Score: ${score}`;
+  $("score-label").textContent = t("score")(score);
   $("bar-fill").style.width = (round / totalRounds * 100) + "%";
 
   const fb = $("feedback");
@@ -339,32 +415,37 @@ function finishRound(ok) {
   fb.classList.add(ok ? "ok" : "bad");
 
   const fullPath = current.path.map(l => esc(l.n)).join('<span class="sep"> › </span>');
-  const link = `<a href="${PRODUCT_LINK}${current.id}" target="_blank" rel="noopener">View the product in Joompulse →</a>`;
+  const link = `<a href="${PRODUCT_LINK}${current.id}" target="_blank" rel="noopener">${t("viewProduct")}</a>`;
   if (ok) {
-    $("fb-verdict").textContent = mistakes === 0 ? "🎯 Flawless!" : "✅ Completed!";
+    $("fb-verdict").textContent = mistakes === 0 ? t("flawless") : t("completed");
     $("fb-detail").innerHTML =
-      `Full path: <b>${fullPath}</b><br>Lives left: ${"❤️".repeat(MAX_MISTAKES - mistakes)}<br>${link}`;
+      `${t("fullPathLabel")} <b>${fullPath}</b><br>${t("livesLeft")} ${"❤️".repeat(MAX_MISTAKES - mistakes)}<br>${link}`;
   } else {
-    $("fb-verdict").textContent = "❌ Out of lives";
+    $("fb-verdict").textContent = t("outOfLives");
     $("fb-detail").innerHTML =
-      `The correct path was: <b>${fullPath}</b><br>${link}`;
+      `${t("correctWas")} <b>${fullPath}</b><br>${link}`;
   }
 
   $("options").innerHTML = "";
   $("breadcrumb").innerHTML = fullPath;
-  $("btn-next").textContent = round >= totalRounds ? "Results →" : "Next →";
+  $("btn-next").textContent = round >= totalRounds ? t("results") : t("next");
   $("btn-next").focus();
 }
 
 function endGame() {
-  const ratio = score / totalRounds;
-  let rating = RATINGS[0];
-  for (const r of RATINGS) if (ratio >= r.min) rating = r;
+  show("screen-result");
+  renderResult();
+}
 
-  $("res-emoji").textContent = rating.emoji;
-  $("res-score").textContent = `${score} of ${totalRounds}`;
-  $("res-title").textContent = rating.title;
-  $("res-desc").textContent = rating.desc;
+function renderResult() {
+  const ratio = score / totalRounds;
+  let idx = 0;
+  RATING_TIERS.forEach((r, i) => { if (ratio >= r.min) idx = i; });
+
+  $("res-emoji").textContent = RATING_TIERS[idx].emoji;
+  $("res-score").textContent = t("resScore")(score, totalRounds);
+  $("res-title").textContent = t("ratings")[idx].title;
+  $("res-desc").textContent = t("ratings")[idx].desc;
 
   $("res-rows").innerHTML = history.map(h =>
     `<tr>
@@ -373,8 +454,33 @@ function endGame() {
       <td class="prod">${esc(h.title)}</td>
       <td class="link"><a href="${PRODUCT_LINK}${h.id}" target="_blank" rel="noopener">JoomPulse →</a></td>
     </tr>`).join("");
+}
 
-  show("screen-result");
+function applyLang(l) {
+  lang = l;
+  localStorage.setItem("jp-quiz-lang", l);
+  document.documentElement.lang = l === "pt" ? "pt-BR" : "en";
+  document.title = t("title").replace("🇧🇷 ", "") + " 🇧🇷";
+  document.querySelectorAll(".lang-toggle button").forEach(b =>
+    b.classList.toggle("active", b.dataset.lang === l));
+
+  $("t-title").textContent = t("title");
+  $("t-subtitle").textContent = t("subtitle");
+  $("t-intro").innerHTML = t("intro");
+  $("t-rounds-label").textContent = t("roundsLabel");
+  $("btn-start").textContent = t("start");
+  $("t-more").innerHTML = t("more");
+  $("t-res-label").textContent = t("resLabel");
+  $("t-th-prod").textContent = t("thProduct");
+  $("btn-again").textContent = t("again");
+
+  if (current) {
+    $("round-label").textContent = t("round")(round, totalRounds);
+    $("score-label").textContent = t("score")(score);
+    $("level-label").textContent = t("level")(Math.min(levelIdx + 1, current.path.length), current.path.length);
+    $("btn-next").textContent = round >= totalRounds ? t("results") : t("next");
+  }
+  if (!$("screen-result").classList.contains("hidden")) renderResult();
 }
 
 function esc(s) {
@@ -385,10 +491,14 @@ $("btn-start").onclick = startGame;
 $("btn-next").onclick = nextRound;
 $("btn-again").onclick = () => show("screen-start");
 
+document.querySelectorAll(".lang-toggle button").forEach(b =>
+  b.onclick = () => applyLang(b.dataset.lang));
+applyLang(lang);
+
 $("prod-img").onerror = function () {
   this.onerror = null;
   this.src = "data:image/svg+xml," + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#232b42"/><text x="50%" y="50%" fill="#97a0b8" font-size="14" text-anchor="middle" font-family="sans-serif">no photo</text></svg>');
+    `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#232b42"/><text x="50%" y="50%" fill="#97a0b8" font-size="14" text-anchor="middle" font-family="sans-serif">${t("noPhoto")}</text></svg>`);
 };
 </script>
 </body>
