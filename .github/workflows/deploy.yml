@@ -18,8 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          mkdir -p dist/categories
-          cp suppliers/index.html dist/
+          mkdir -p dist/suppliers dist/categories
+          cp index.html dist/
+          cp suppliers/index.html dist/suppliers/
           cp categories/index.html dist/categories/
       - uses: peaceiris/actions-gh-pages@v4
         with:

@@ -1,6 +1,8 @@
-# 🇧🇷 Mercado Livre Quiz Games
+# 🇧🇷 JoomPulse Quiz Games
 
 Quiz games built on Mercado Livre product data.
+
+**All games:** https://borisovdm.github.io/joompulse-quiz/
 
 ## Games
 
@@ -8,23 +10,22 @@ Quiz games built on Mercado Livre product data.
 the same product from a local Brazilian supplier; guess the supplier's price.
 Landing within ±25% of the real price counts as a hit.
 
-**Play:** https://borisovdm.github.io/local-suppliers-quiz/
+**Play:** https://borisovdm.github.io/joompulse-quiz/suppliers/
 
 **Guess the Category Tree** — you see a product from Mercado Livre; guess its full
 category path level by level, picking one of 4 options at each level. 3 lives per product.
 
-**Play:** https://borisovdm.github.io/local-suppliers-quiz/categories/
+**Play:** https://borisovdm.github.io/joompulse-quiz/categories/
 
 ## Structure
 
-Each game lives in its own folder — `suppliers/` and `categories/`:
+- `index.html` — landing page with the list of games
+- `suppliers/`, `categories/` — one folder per game:
+  - `index.html` — the game, fully self-contained (data embedded)
+  - `template.html` — layout and game logic; edit this, not `index.html`
+  - `build.py` — rebuilds `index.html` from the template and the source data
 
-- `index.html` — the game, fully self-contained (data embedded)
-- `template.html` — layout and game logic; edit this, not `index.html`
-- `build.py` — rebuilds `index.html` from the template and the source data
-
-On deploy, `suppliers/index.html` is published at the site root and
-`categories/index.html` at `/categories/`, so the game URLs stay stable.
+The deployed site mirrors the repo layout: `/suppliers/` and `/categories/`.
 
 ## Updating the data
 
