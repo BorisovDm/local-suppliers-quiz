@@ -296,7 +296,8 @@ const I18N = {
   },
 };
 
-let lang = localStorage.getItem("jp-quiz-lang") || "en";
+const urlLang = new URLSearchParams(location.search).get("lang");
+let lang = ["en", "pt"].includes(urlLang) ? urlLang : (localStorage.getItem("jp-quiz-lang") || "en");
 const t = k => I18N[lang][k];
 
 let totalRounds = 7;
@@ -459,6 +460,11 @@ function renderResult() {
 function applyLang(l) {
   lang = l;
   localStorage.setItem("jp-quiz-lang", l);
+  try {
+    const url = new URL(location);
+    url.searchParams.set("lang", l);
+    history.replaceState(null, "", url);
+  } catch (e) { /* среда без history API — не критично */ }
   document.documentElement.lang = l === "pt" ? "pt-BR" : "en";
   document.title = t("title").replace("🇧🇷 ", "") + " 🇧🇷";
   document.querySelectorAll(".lang-toggle button").forEach(b =>
