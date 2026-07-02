@@ -58,6 +58,18 @@
   .btn:disabled { opacity: .4; cursor: default; transform: none; }
   .btn.secondary { background: var(--card2); color: var(--text); }
 
+  /* ---- language toggle ---- */
+  .lang-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 10;
+    display: flex; gap: 4px; background: var(--card); border-radius: 10px; padding: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  }
+  .lang-toggle button {
+    background: transparent; color: var(--muted); border: none; border-radius: 7px;
+    padding: 5px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .lang-toggle button.active { background: var(--accent); color: #1a1a00; }
+
   /* ---- game screen ---- */
   .progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-size: 14px; color: var(--muted); }
   .progress .score { color: var(--accent); font-weight: 700; }
@@ -141,22 +153,27 @@
 </head>
 <body>
 
-<h1>🇧🇷 Guess the Supplier Price</h1>
-<div class="subtitle">On the left — a product on Mercado Livre with its price. On the right — the same product from a local supplier. How much does it cost?</div>
+<div class="lang-toggle">
+  <button data-lang="en">EN</button>
+  <button data-lang="pt">PT</button>
+</div>
+
+<h1 id="t-title">🇧🇷 Guess the Supplier Price</h1>
+<div class="subtitle" id="t-subtitle">On the left — a product on Mercado Livre with its price. On the right — the same product from a local supplier. How much does it cost?</div>
 
 <!-- START -->
 <div id="screen-start" class="screen">
   <div class="panel">
-    <p>You'll see a product from Mercado Livre and its match from a local Brazilian supplier.<br>
+    <p id="t-intro">You'll see a product from Mercado Livre and its match from a local Brazilian supplier.<br>
     Guess the supplier's price — landing within <b style="color:var(--text)">±25%</b> of the real price counts as a hit.</p>
-    <div class="rounds-label">How many rounds?</div>
+    <div class="rounds-label" id="t-rounds-label">How many rounds?</div>
     <div class="rounds" id="rounds">
       <button data-n="5">5</button>
       <button data-n="7" class="active">7</button>
       <button data-n="10">10</button>
     </div>
     <button class="btn" id="btn-start">Start game</button>
-    <p style="margin: 20px 0 0; font-size: 13px;">More games: <a href="../categories/" style="color: var(--accent);">Guess the Category Tree →</a></p>
+    <p style="margin: 20px 0 0; font-size: 13px;" id="t-more">More games: <a href="../categories/" style="color: var(--accent);">Guess the Category Tree →</a></p>
   </div>
 </div>
 
@@ -179,7 +196,7 @@
       </div>
     </div>
     <div class="card supplier">
-      <div class="tag">Local Supplier</div>
+      <div class="tag" id="t-tag-sup">Local Supplier</div>
       <img id="sup-img" alt="" referrerpolicy="no-referrer">
       <div class="body">
         <div class="title" id="sup-title"></div>
@@ -194,7 +211,7 @@
       <input class="guess-input" id="guess" inputmode="decimal" placeholder="R$ 0,00" autocomplete="off">
       <button class="btn" id="btn-guess">Guess</button>
     </div>
-    <div class="hint">Enter the price in Brazilian reais (R$). Within ±25% counts as a hit.</div>
+    <div class="hint" id="t-hint">Enter the price in Brazilian reais (R$). Within ±25% counts as a hit.</div>
   </div>
 
   <div id="feedback" class="feedback hidden">
@@ -208,12 +225,12 @@
 <div id="screen-result" class="screen hidden">
   <div class="panel">
     <div class="result-emoji" id="res-emoji"></div>
-    <div class="result-score">Correct guesses: <b id="res-score"></b></div>
+    <div class="result-score"><span id="t-res-label">Correct guesses: </span><b id="res-score"></b></div>
     <div class="result-title" id="res-title"></div>
     <div class="result-desc" id="res-desc"></div>
     <div class="result-table-wrap">
       <table class="result-table">
-        <thead><tr><th>#</th><th></th><th>Product</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th></th><th id="t-th-prod">Product</th><th></th></tr></thead>
         <tbody id="res-rows"></tbody>
       </table>
     </div>
@@ -228,20 +245,84 @@ const SUPPLIER_IMG_PREFIX = "https://files.joomprocdn.net/";
 const PRODUCT_LINK = "https://joompulse.com/en/dashboard/local-suppliers/product/";
 const TOLERANCE = 0.25;
 
-const RATINGS = [
-  { min: 0.00, emoji: "🏖️", title: "Gringo",
-    desc: "They can spot you from a mile away: you pay like a tourist on Copacabana. The local market is still a mystery to you." },
-  { min: 0.21, emoji: "🎒", title: "Tourist on 25 de Março Street",
-    desc: "You've heard something about wholesale prices, but haggling still scares you." },
-  { min: 0.41, emoji: "🛵", title: "Junior Buyer",
-    desc: "You've got a feel for the market, but suppliers still overcharge you now and then." },
-  { min: 0.61, emoji: "🤝", title: "Seasoned Negotiator",
-    desc: "Suppliers take you seriously. You know where the margin is — and where the rip-off is." },
-  { min: 0.81, emoji: "🧠", title: "Local Market Pro",
-    desc: "You read supplier prices like an open book. Impressive!" },
-  { min: 0.999, emoji: "👑", title: "King of the Local Market",
-    desc: "A perfect score! Suppliers whisper your name in the warehouses of São Paulo." },
+const RATING_TIERS = [
+  { min: 0.00, emoji: "🏖️" },
+  { min: 0.21, emoji: "🎒" },
+  { min: 0.41, emoji: "🛵" },
+  { min: 0.61, emoji: "🤝" },
+  { min: 0.81, emoji: "🧠" },
+  { min: 0.999, emoji: "👑" },
 ];
+
+const I18N = {
+  en: {
+    title: "🇧🇷 Guess the Supplier Price",
+    subtitle: "On the left — a product on Mercado Livre with its price. On the right — the same product from a local supplier. How much does it cost?",
+    intro: 'You\'ll see a product from Mercado Livre and its match from a local Brazilian supplier.<br>Guess the supplier\'s price — landing within <b style="color:var(--text)">±25%</b> of the real price counts as a hit.',
+    roundsLabel: "How many rounds?",
+    start: "Start game",
+    more: 'More games: <a href="../categories/" style="color: var(--accent);">Guess the Category Tree →</a>',
+    tagSupplier: "Local Supplier",
+    guessBtn: "Guess",
+    hint: "Enter the price in Brazilian reais (R$). Within ±25% counts as a hit.",
+    round: (n, tot) => `Round ${n} / ${tot}`,
+    score: s => `Score: ${s}`,
+    sniper: "🎯 Sniper!", counts: "✅ It counts!", missed: "❌ Missed",
+    above: "above", below: "below",
+    okDetail: (real, guess, pct, dir) => `The real price is <b>${real}</b>, your guess was ${guess} (${pct}% ${dir}).`,
+    badDetail: (real, guess, pct, dir) => `The real price is <b>${real}</b>, you said ${guess} — ${pct}% ${dir}.`,
+    viewProduct: "View the product in Joompulse →",
+    next: "Next →", results: "Results →",
+    resLabel: "Correct guesses: ",
+    resScore: (s, tot) => `${s} of ${tot}`,
+    thProduct: "Product",
+    again: "Play again",
+    noPhoto: "no photo",
+    ratings: [
+      { title: "Gringo", desc: "They can spot you from a mile away: you pay like a tourist on Copacabana. The local market is still a mystery to you." },
+      { title: "Tourist on 25 de Março Street", desc: "You've heard something about wholesale prices, but haggling still scares you." },
+      { title: "Junior Buyer", desc: "You've got a feel for the market, but suppliers still overcharge you now and then." },
+      { title: "Seasoned Negotiator", desc: "Suppliers take you seriously. You know where the margin is — and where the rip-off is." },
+      { title: "Local Market Pro", desc: "You read supplier prices like an open book. Impressive!" },
+      { title: "King of the Local Market", desc: "A perfect score! Suppliers whisper your name in the warehouses of São Paulo." },
+    ],
+  },
+  pt: {
+    title: "🇧🇷 Adivinhe o Preço do Fornecedor",
+    subtitle: "À esquerda — um produto no Mercado Livre com o preço. À direita — o mesmo produto de um fornecedor local. Quanto ele custa?",
+    intro: 'Você verá um produto do Mercado Livre e o equivalente de um fornecedor local brasileiro.<br>Adivinhe o preço do fornecedor — ficar dentro de <b style="color:var(--text)">±25%</b> do preço real conta como acerto.',
+    roundsLabel: "Quantas rodadas?",
+    start: "Começar o jogo",
+    more: 'Mais jogos: <a href="../categories/" style="color: var(--accent);">Adivinhe a Árvore de Categorias →</a>',
+    tagSupplier: "Fornecedor Local",
+    guessBtn: "Adivinhar",
+    hint: "Digite o preço em reais (R$). Dentro de ±25% conta como acerto.",
+    round: (n, tot) => `Rodada ${n} / ${tot}`,
+    score: s => `Pontos: ${s}`,
+    sniper: "🎯 Na mosca!", counts: "✅ Valeu!", missed: "❌ Errou",
+    above: "acima", below: "abaixo",
+    okDetail: (real, guess, pct, dir) => `O preço real é <b>${real}</b>, seu palpite foi ${guess} (${pct}% ${dir}).`,
+    badDetail: (real, guess, pct, dir) => `O preço real é <b>${real}</b>, você disse ${guess} — ${pct}% ${dir}.`,
+    viewProduct: "Ver o produto no Joompulse →",
+    next: "Próxima →", results: "Resultados →",
+    resLabel: "Acertos: ",
+    resScore: (s, tot) => `${s} de ${tot}`,
+    thProduct: "Produto",
+    again: "Jogar de novo",
+    noPhoto: "sem foto",
+    ratings: [
+      { title: "Gringo", desc: "Dá pra te ver de longe: você paga como turista em Copacabana. O mercado local ainda é um mistério pra você." },
+      { title: "Turista da Rua 25 de Março", desc: "Você já ouviu falar de preço de atacado, mas pechinchar ainda te dá medo." },
+      { title: "Comprador Iniciante", desc: "Você já sente o mercado, mas os fornecedores ainda te passam a perna de vez em quando." },
+      { title: "Negociador Experiente", desc: "Os fornecedores te levam a sério. Você sabe onde está a margem — e onde está o golpe." },
+      { title: "Profissional do Mercado Local", desc: "Você lê os preços dos fornecedores como um livro aberto. Impressionante!" },
+      { title: "Rei do Mercado Local", desc: "Pontuação perfeita! Os fornecedores sussurram seu nome nos galpões de São Paulo." },
+    ],
+  },
+};
+
+let lang = localStorage.getItem("jp-quiz-lang") || "en";
+const t = k => I18N[lang][k];
 
 let totalRounds = 7;
 let round = 0, score = 0;
@@ -287,8 +368,8 @@ function nextRound() {
   current = items[round];
   round++;
 
-  $("round-label").textContent = `Round ${round} / ${totalRounds}`;
-  $("score-label").textContent = `Score: ${score}`;
+  $("round-label").textContent = t("round")(round, totalRounds);
+  $("score-label").textContent = t("score")(score);
   $("bar-fill").style.width = ((round - 1) / totalRounds * 100) + "%";
 
   $("mlb-img").src = current.mi;
@@ -337,7 +418,7 @@ function submitGuess() {
 
   $("sup-price").textContent = fmt(real);
   $("sup-price").classList.remove("mystery");
-  $("score-label").textContent = `Score: ${score}`;
+  $("score-label").textContent = t("score")(score);
   $("bar-fill").style.width = (round / totalRounds * 100) + "%";
 
   const fb = $("feedback");
@@ -345,33 +426,37 @@ function submitGuess() {
   fb.classList.add(ok ? "ok" : "bad");
 
   const pct = Math.round(Math.abs(diff) * 100);
-  const dir = diff > 0 ? "above" : "below";
+  const dir = diff > 0 ? t("above") : t("below");
   if (ok) {
-    $("fb-verdict").textContent = pct <= 5 ? "🎯 Sniper!" : "✅ It counts!";
-    $("fb-detail").innerHTML =
-      `The real price is <b>${fmt(real)}</b>, your guess was ${fmt(guess)} (${pct}% ${dir}).`;
+    $("fb-verdict").textContent = pct <= 5 ? t("sniper") : t("counts");
+    $("fb-detail").innerHTML = t("okDetail")(fmt(real), fmt(guess), pct, dir);
   } else {
-    $("fb-verdict").textContent = "❌ Missed";
+    $("fb-verdict").textContent = t("missed");
     $("fb-detail").innerHTML =
-      `The real price is <b>${fmt(real)}</b>, you said ${fmt(guess)} — ${pct}% ${dir}.<br>` +
-      `<a href="${PRODUCT_LINK}${current.id}" target="_blank" rel="noopener">View the product in Joompulse →</a>`;
+      t("badDetail")(fmt(real), fmt(guess), pct, dir) + `<br>` +
+      `<a href="${PRODUCT_LINK}${current.id}" target="_blank" rel="noopener">${t("viewProduct")}</a>`;
   }
 
   $("guess-block").classList.add("hidden");
   fb.classList.remove("hidden");
-  $("btn-next").textContent = round >= totalRounds ? "Results →" : "Next →";
+  $("btn-next").textContent = round >= totalRounds ? t("results") : t("next");
   $("btn-next").focus();
 }
 
 function endGame() {
-  const ratio = score / totalRounds;
-  let rating = RATINGS[0];
-  for (const r of RATINGS) if (ratio >= r.min) rating = r;
+  show("screen-result");
+  renderResult();
+}
 
-  $("res-emoji").textContent = rating.emoji;
-  $("res-score").textContent = `${score} of ${totalRounds}`;
-  $("res-title").textContent = rating.title;
-  $("res-desc").textContent = rating.desc;
+function renderResult() {
+  const ratio = score / totalRounds;
+  let idx = 0;
+  RATING_TIERS.forEach((r, i) => { if (ratio >= r.min) idx = i; });
+
+  $("res-emoji").textContent = RATING_TIERS[idx].emoji;
+  $("res-score").textContent = t("resScore")(score, totalRounds);
+  $("res-title").textContent = t("ratings")[idx].title;
+  $("res-desc").textContent = t("ratings")[idx].desc;
 
   const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   $("res-rows").innerHTML = history.map(h =>
@@ -381,8 +466,35 @@ function endGame() {
       <td class="prod">${esc(h.title)}</td>
       <td class="link"><a href="${PRODUCT_LINK}${h.id}" target="_blank" rel="noopener">JoomPulse →</a></td>
     </tr>`).join("");
+}
 
-  show("screen-result");
+function applyLang(l) {
+  lang = l;
+  localStorage.setItem("jp-quiz-lang", l);
+  document.documentElement.lang = l === "pt" ? "pt-BR" : "en";
+  document.title = t("title").replace("🇧🇷 ", "") + " 🇧🇷";
+  document.querySelectorAll(".lang-toggle button").forEach(b =>
+    b.classList.toggle("active", b.dataset.lang === l));
+
+  $("t-title").textContent = t("title");
+  $("t-subtitle").textContent = t("subtitle");
+  $("t-intro").innerHTML = t("intro");
+  $("t-rounds-label").textContent = t("roundsLabel");
+  $("btn-start").textContent = t("start");
+  $("t-more").innerHTML = t("more");
+  $("t-tag-sup").textContent = t("tagSupplier");
+  $("btn-guess").textContent = t("guessBtn");
+  $("t-hint").textContent = t("hint");
+  $("t-res-label").textContent = t("resLabel");
+  $("t-th-prod").textContent = t("thProduct");
+  $("btn-again").textContent = t("again");
+
+  if (current) {
+    $("round-label").textContent = t("round")(round, totalRounds);
+    $("score-label").textContent = t("score")(score);
+    $("btn-next").textContent = round >= totalRounds ? t("results") : t("next");
+  }
+  if (!$("screen-result").classList.contains("hidden")) renderResult();
 }
 
 $("btn-start").onclick = startGame;
@@ -391,12 +503,16 @@ $("btn-next").onclick = nextRound;
 $("btn-again").onclick = () => show("screen-start");
 $("guess").addEventListener("keydown", e => { if (e.key === "Enter") submitGuess(); });
 
+document.querySelectorAll(".lang-toggle button").forEach(b =>
+  b.onclick = () => applyLang(b.dataset.lang));
+applyLang(lang);
+
 // image fallback
 ["mlb-img", "sup-img"].forEach(id => {
   $(id).onerror = function () {
     this.onerror = null;
     this.src = "data:image/svg+xml," + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260"><rect width="100%" height="100%" fill="#232b42"/><text x="50%" y="50%" fill="#97a0b8" font-size="16" text-anchor="middle" font-family="sans-serif">no photo</text></svg>');
+      `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260"><rect width="100%" height="100%" fill="#232b42"/><text x="50%" y="50%" fill="#97a0b8" font-size="16" text-anchor="middle" font-family="sans-serif">${t("noPhoto")}</text></svg>`);
   };
 });
 </script>
