@@ -133,6 +133,7 @@
   .result-table tr:last-child td { border-bottom: none; }
   .result-table .num { color: var(--muted); width: 30px; }
   .result-table .mark { width: 30px; font-size: 16px; }
+  .result-table .lvls { width: 48px; white-space: nowrap; font-weight: 600; }
   .result-table .prod { line-height: 1.35; overflow-wrap: anywhere; }
   .result-table .link { white-space: nowrap; }
   .result-table a { color: var(--accent); text-decoration: none; }
@@ -210,7 +211,7 @@
     <div class="result-desc" id="res-desc"></div>
     <div class="result-table-wrap">
       <table class="result-table">
-        <thead><tr><th>#</th><th></th><th id="t-th-prod">Product</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th></th><th id="t-th-lvls">Levels</th><th id="t-th-prod">Product</th><th></th></tr></thead>
         <tbody id="res-rows"></tbody>
       </table>
     </div>
@@ -253,6 +254,7 @@ const I18N = {
     resLabel: "Products completed: ",
     resScore: (s, tot) => `${s} of ${tot}`,
     thProduct: "Product",
+    thLevels: "Levels",
     again: "Play again",
     noPhoto: "no photo",
     ratings: [
@@ -283,6 +285,7 @@ const I18N = {
     resLabel: "Produtos concluídos: ",
     resScore: (s, tot) => `${s} de ${tot}`,
     thProduct: "Produto",
+    thLevels: "Níveis",
     again: "Jogar de novo",
     noPhoto: "sem foto",
     ratings: [
@@ -406,7 +409,8 @@ function pick(btn, name) {
 
 function finishRound(ok) {
   if (ok) score++;
-  history.push({ round, ok, title: current.t, id: current.id });
+  // levelIdx на этот момент = число полностью угаданных уровней
+  history.push({ round, ok, done: levelIdx, total: current.path.length, title: current.t, id: current.id });
 
   $("score-label").textContent = t("score")(score);
   $("bar-fill").style.width = (round / totalRounds * 100) + "%";
@@ -452,6 +456,7 @@ function renderResult() {
     `<tr>
       <td class="num">${h.round}</td>
       <td class="mark">${h.ok ? "✅" : "❌"}</td>
+      <td class="lvls">${h.done}/${h.total}</td>
       <td class="prod">${esc(h.title)}</td>
       <td class="link"><a href="${PRODUCT_LINK}${h.id}" target="_blank" rel="noopener">JoomPulse →</a></td>
     </tr>`).join("");
@@ -478,6 +483,7 @@ function applyLang(l) {
   $("t-more").innerHTML = t("more");
   $("t-res-label").textContent = t("resLabel");
   $("t-th-prod").textContent = t("thProduct");
+  $("t-th-lvls").textContent = t("thLevels");
   $("btn-again").textContent = t("again");
 
   if (current) {
